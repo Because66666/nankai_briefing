@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>南开简报-测试</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #pic {
+            width: 100%;
+                display: table;
+            height: 150px;
+            position: relative;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-image: url('/pic/background.jpg');
+            background-size: cover;
+            filter: blur(10px);
+            z-index: -1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+        #msg {
+            position: relative;
+            width: 30%;
+        }
+
+        #title {
+            display: table;
+            position:  absolute;
+            bottom: 10px;
+            z-index: 1;
+    left: 45%;
+    top:0%;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="title"><h1>南开简报</h1></div>
+    <div id="pic"></div>
+    <div id="msg"></div>
+
+    <script>
+$(document).ready(function() {
+    var dataList = []; // 用于存储从/get_data获取的数据列表
+    var isLoading = false; // 用于判断是否正在加载数据
+    var num = 0; //从第几条数据开始加载
+    var delta = 10; // 每次加载10条数据
+    var allowLoadMore = true; // 用于判断是否允许加载更多
+    console.log("start");
+    loadData(); // 加载数据
+
+    // 监听滚动事件
+    $(window).scroll(function() {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+            // 当页面滚动到距离底部200像素时，开始加载数据
+            if (!isLoading) {
+            if (allowLoadMore) {
+                isLoading = true;
+                console.log("loadData start");
+                loadData();
+                }
+            }
+        }
+    });
+
+    function loadData() {
+
+        $.get("/get_data?count="+num+"&delta="+delta, function(data) {
+            dataList = data.data; // 将数据存储在dataList中
+
+            if  (dataList.length === 0) {
+                allowLoadMore = false; // 数据加载完毕，不再允许加载更多
+                var newRow = $('<img src="\\pic\\msg.jpg" style="height: 15px;width:100vw;opacity:0.3;"><p style="width:100vw;">没有更多数据了</p>');
+            $("#msg").append(newRow);
+                return;
+            }
+            iterateData(); // 开始迭代数据并添加到DOM树中
+            console.log("iterateData end");
+            isLoading = false; // 数据加载完毕，可以继续加载
+            var i = num+10;
+            num = i;
+
+        });
+    }
+
+function iterateData() {
+    var intervalId = setInterval(function() {
+        if (dataList.length === 0) {
+            clearInterval(intervalId); // 取消循环
+        } else {
+        if (Array.isArray(dataList)) {
+            var data = dataList.shift();
+            } else {
+            console.log('dataList is not an array!');
+            }
+            // 移除并返回数组的第一个元素
+
+var newRow = $('<div style="width: 100vw;">'+
+    '<img src="\\pic\\msg.jpg" style="height: 15px;width:100vw;opacity:0.3;">'+
+    '<p style="width:100vw;">【' + data.from_place + '·' + data.type + '】</p>'+
+    '<p style="width:100vw;"><a href="' + data.url + '" target="_blank">' + data.title + '</a></p>'+
+    '<p style="width:100vw;">' + data.time_push + '</p>'+
+    '</div>');
+                $("#msg").append(newRow);
+        }
+    },1); // 设置为数组长度的毫秒数
+}});
+    </script>
+</body>
+</html>

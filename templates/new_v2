@@ -1,0 +1,58 @@
+// 使用fetch API获取数据
+fetch('http://127.0.0.1:4399/get_data')
+  .then(response => response.json())
+  .then(data => {
+    // 使用数据创建资讯块并添加到页面上
+    createNewsBlocks(data);
+  });
+
+function createNewsBlocks(data) {
+  // 根据data创建资讯块并添加到页面上
+  // 当用户下滑到一定程度时，重新获取数据
+  const refreshThreshold = 5; // 可根据实际情况调整
+  if (data.length < refreshThreshold) {
+    fetch('http://127.0.0.1:4399/refresh')
+      .then(response => response.json())
+      .then(newData => {
+        if (newData.length > 0) {
+          // 使用新数据创建资讯块并添加到页面上
+          createNewsBlocks(data.concat(newData));
+        }
+      });
+  }
+}
+fetch('http://127.0.0.1:4399/pic/search.jpg')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.blob();
+  })
+  .then(searchImage => {
+    const searchImageElement = document.getElementById('search-image');
+    searchImageElement.src = URL.createObjectURL(searchImage);
+  })
+  .catch(error => {
+    console.log('There has been a problem with your fetch operation:', error);
+    // 在这里你可以添加你想做的错误处理，比如显示一个默认的图片或者显示错误信息
+    const searchImageElement = document.getElementById('search-image');
+    searchImageElement.src = 'default_search_image.jpg'; // 默认搜索图片的URL
+  });
+
+fetch('http://127.0.0.1:4399/pic/user.jpg')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.blob();
+  })
+  .then(userImage => {
+    const userImageElement = document.getElementById('user-image');
+    userImageElement.src = URL.createObjectURL(userImage);
+  })
+  .catch(error => {
+    console.log('There has been a problem with your fetch operation:', error);
+    // 在这里你可以添加你想做的错误处理，比如显示一个默认的图片或者显示错误信息
+    const userImageElement = document.getElementById('user-image');
+    userImageElement.src = 'default_user_image.jpg'; // 默认用户图片的URL
+  });
